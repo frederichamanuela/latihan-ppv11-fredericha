@@ -1,14 +1,6 @@
-// ui.js — satu-satunya tempat membangun HTML kartu dan mengisi halaman.
+// ui.js — mengisi halaman dengan komponen dari komponen.js; tidak menulis markup kartu sendiri.
 import { cari } from './state.js';
-
-function kartu(c) {
-  return (
-    '<div class="kartu"><small>' + c.mk + '</small><h3>' + c.judul + '</h3>' +
-    '<small>' + new Date(c.dibuat).toLocaleDateString('id-ID') + '</small>' +
-    '<div class="aksi"><button data-aksi="semat" data-id="' + c.id + '">' + (c.disematkan ? 'Lepas' : 'Sematkan') + '</button>' +
-    '<button data-aksi="hapus" data-id="' + c.id + '">Hapus</button></div></div>'
-  );
-}
+import { KartuCatatan, PesanKosong } from './komponen.js';
 
 export function render(kataCari) {
   const hasil = cari(kataCari);
@@ -16,20 +8,18 @@ export function render(kataCari) {
   const semua = document.getElementById('semua');
   const info = document.getElementById('info');
 
-  let htmlSemat = '';
-  let htmlSemua = '';
+  sematan.replaceChildren();
+  semua.replaceChildren();
   let jumlahSemat = 0;
   for (const c of hasil) {
     if (c.disematkan) {
       jumlahSemat++;
-      htmlSemat += kartu(c);
+      sematan.appendChild(KartuCatatan(c));
     }
-    htmlSemua += kartu(c);
+    semua.appendChild(KartuCatatan(c));
   }
-  if (jumlahSemat === 0) htmlSemat = '<p class="kosong">Belum ada catatan yang disematkan.</p>';
-  if (hasil.length === 0) htmlSemua = '<p class="kosong">Tidak ada catatan.</p>';
+  if (jumlahSemat === 0) sematan.appendChild(PesanKosong('Belum ada catatan yang disematkan.'));
+  if (hasil.length === 0) semua.appendChild(PesanKosong('Tidak ada catatan.'));
 
-  sematan.innerHTML = htmlSemat;
-  semua.innerHTML = htmlSemua;
   info.textContent = hasil.length + ' catatan, ' + jumlahSemat + ' disematkan';
 }
