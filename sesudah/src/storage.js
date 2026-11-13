@@ -5,11 +5,18 @@ const KUNCI_LAMA = 'catatan-kuliah'; // versi monolit (P11 lama), untuk migrasi 
 // cadangan di memori: kalau localStorage diblokir/rusak, aplikasi masih punya data terakhir yang sah
 let cadanganMemori = [];
 
-// pesan yang jelas ke pengguna bila penyimpanan bermasalah
+// pesan terakhir untuk pengguna; ui.js yang menampilkannya (storage tetap bebas DOM)
+let pesanTerakhir = '';
+
 function pesan(teks) {
+  pesanTerakhir = teks;
   console.warn('[storage] ' + teks);
-  const info = document.getElementById('info');
-  if (info) info.textContent = teks;
+}
+
+export function ambilPeringatan() {
+  const t = pesanTerakhir;
+  pesanTerakhir = '';
+  return t;
 }
 
 export function muat() {
@@ -42,10 +49,16 @@ function saring(mentah) {
   try {
     data = JSON.parse(mentah);
   } catch {
+    pesan('Data tersimpan rusak dan diabaikan; aplikasi mulai dengan daftar kosong.');
     return [];
   }
-  if (!Array.isArray(data)) return [];
-  return data.filter((c) => c && typeof c === 'object' && typeof c.judul === 'string');
+  if (!Array.isArray(data)) {
+    pesan('Data tersimpan bukan daftar catatan; aplikasi mulai dengan daftar kosong.');
+    return [];
+  }
+  const sah = data.filter((c) => c && typeof c === 'object' && typeof c.judul === 'string');
+  if (sah.length < data.length) pesan('Sebagian data tidak sah diabaikan (' + (data.length - sah.length) + ' item).');
+  return sah;
 }
 
 export function simpan(daftar) {
